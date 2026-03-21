@@ -23,6 +23,19 @@ static struct block_meta *find_free_block(struct block_meta **last, uint32_t siz
 	return current;
 }
 
+// 辅助函数：拆分得到的内存块
+static void split_block(struct block_meta *block, uint32_t size) {
+	if (block->size >= size + META_SIZE + ALIGNMENT) {
+		struct block_meta *new_block = (struct block_meta *)((uint8_t *)block + META_SIZE + size);
+		new_block->size = block->size - size - META_SIZE;
+		new_block->is_free = 1;
+		new_block->next = block->next;
+
+		block->size = size;
+		block->next = new_block;
+	}
+}
+
 // 仅向页分配器申请新空间
 static struct block_meta *request_space(struct block_meta *last, uint32_t size) {
 	uint32_t total_needed = size + META_SIZE;
@@ -65,14 +78,15 @@ void *malloc(uint32_t size) {
 	} else {
 		block->is_free = 0;
 	}
+    split_block(block, aligned_size);
 	return (block + 1);
 }
 
 void malloc_test() {
-	printf("Test: Reuse\n");
-	void *p1 = malloc(10);
+	printf("Test: Splitting\n");
+	void *p1 = malloc(100);
 	free(p1);
-	void *p2 = malloc(10);
-	printf("p1: %p, p2: %p\n", p1, p2);
-	if (p1 == p2) printf("SUCCESS: Block reused!\n");
+	void *p2 = malloc(20); // 会拆分 p1 之前的空间
+	void *p3 = malloc(20); // 会占用 p1 拆分出来的下一段空间
+	printf("p2: %p, p3: %p\n", p2, p3);
 }
