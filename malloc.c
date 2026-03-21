@@ -36,6 +36,19 @@ static void split_block(struct block_meta *block, uint32_t size) {
 	}
 }
 
+// 辅助函数：合并释放之后的碎片
+static void coalesce() {
+	struct block_meta *curr = global_base;
+	while (curr && curr->next) {
+		if (curr->is_free && curr->next->is_free) {
+			curr->size += META_SIZE + curr->next->size;
+			curr->next = curr->next->next;
+		} else {
+			curr = curr->next;
+		}
+	}
+}
+
 // 仅向页分配器申请新空间
 static struct block_meta *request_space(struct block_meta *last, uint32_t size) {
 	uint32_t total_needed = size + META_SIZE;
@@ -58,6 +71,7 @@ void free(void *ptr) {
 	struct block_meta *block = (struct block_meta *)ptr - 1;
 	block->is_free = 1; 
 	printf("Block at %p marked as free\n", ptr);
+	coalesce();
 }
 
 void *malloc(uint32_t size) {
@@ -83,10 +97,11 @@ void *malloc(uint32_t size) {
 }
 
 void malloc_test() {
-	printf("Test: Splitting\n");
-	void *p1 = malloc(100);
+	printf("Test: Coalescing\n");
+	void *p1 = malloc(10);
+	void *p2 = malloc(10);
 	free(p1);
-	void *p2 = malloc(20); // 会拆分 p1 之前的空间
-	void *p3 = malloc(20); // 会占用 p1 拆分出来的下一段空间
-	printf("p2: %p, p3: %p\n", p2, p3);
+	free(p2);
+	void *p3 = malloc(30); // 如果合并成功，p3 能拿到 p1 的起始地址
+	if (p3 == p1) printf("SUCCESS: Coalesce working!\n");
 }
