@@ -29,6 +29,14 @@ static struct block_meta *request_space(struct block_meta *last, uint32_t size) 
 	return block;
 }
 
+void free(void *ptr) {
+	if (!ptr) return;
+	// 通过指针偏移找到 Header
+	struct block_meta *block = (struct block_meta *)ptr - 1;
+	block->is_free = 1; 
+	printf("Block at %p marked as free\n", ptr);
+}
+
 void *malloc(uint32_t size) {
 	if (size <= 0) return NULL;
 	uint32_t aligned_size = ALIGN(size);
@@ -45,7 +53,7 @@ void *malloc(uint32_t size) {
 }
 
 void malloc_test() {
-	printf("Test: Basic Allocation\n");
+	printf("Test: Mark as Free\n");
 	void *p1 = malloc(10);
-	printf("p1 (10 bytes) at: %p\n", p1);
+	free(p1);
 }
