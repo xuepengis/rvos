@@ -1,15 +1,20 @@
+#include "os.h"
+
+/*
+ * Following functions SHOULD be called ONLY ONE time here,
+ * so just declared here ONCE and NOT included in file os.h.
+ */
 extern void uart_init(void);
-extern void uart_puts(char *s);
+extern void page_init(void);
 
 void start_kernel(void)
 {
 	uart_init();
-	uart_puts("Hello, Kernel!\n");
-	uart_puts("My name is 薛鹏\n");
-	uart_puts("My name is 杨怡萱!\n");
-	uart_puts("My name is 徐蜚遥\n");
-	uart_puts("My name is 姚翎\n");
+	uart_puts("Hello, RVOS!\n");
+	page_init();
 
-	while (1) {}; // stop here!
+	malloc_test(); // 执行测试
+
+	while (1) {};
 }
 

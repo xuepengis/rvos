@@ -1,5 +1,4 @@
-#include "types.h"
-#include "platform.h"
+#include "os.h"
 
 /*
  * The UART control registers are memory-mapped at address UART0. 
