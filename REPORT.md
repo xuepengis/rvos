@@ -370,3 +370,181 @@ SUCCESS: Coalesce working!
 
 **提交编号**  
 本次实验的最终提交编号为：ad31236
+
+## 📝 第 3 次实验
+
+本次实验目标是实现协作式调度器，支持任务切换；任务结构体设计、上下文切换、FIFO调度、带优先级的彩票调度。
+
+**题目要求**
+
+以教师提供的代码为基础，实现以下内容：
+
+- 掌握使用汇编语言实现完整的上下文切换（context switch）。
+- 学会实现任务创建（task_create）与任务让出（task_yield）接口。
+- 通过 UART 输出验证多任务并发执行的正确性。
+- 理解 mscratch 寄存器在调度器中的巧妙运用。
+- 完成 FIFO调度、带优先级的彩票调度
+
+**完成情况**
+
+已完成第 3 次实验的全部要求。当前已经新增 `entry.S`、`sched.c` 和 `user.c`，形成完整的多任务执行链：内核启动后先完成 UART 和堆初始化，再初始化调度器、创建演示任务并进入 `schedule()`。调度器采用“上下文结构 + 独立任务栈 + `mscratch` 保存当前任务指针”的实现方式，能够在 `task_yield()` 调用时保存当前任务的寄存器现场并恢复下一个任务的执行环境。
+
+
+**执行输出**
+```
+------------------------------------
+Hello, RVOS!
+HEAP_START = 0x80007130(aligned to 0x80008000), HEAP_SIZE = 0xffff8ecf,
+num of reserved pages = 8, num of pages to be allocated for heap = 1048559
+TEXT:   0x80000000 -> 0x80003918
+RODATA: 0x80003918 -> 0x80003d1f
+DATA:   0x80004000 -> 0x80004008
+BSS:    0x80004010 -> 0x80007130
+HEAP:   0x80010000 -> 0x7ffff000
+Setting Schedule Policy to Priority Weight...
+Task 1 (Weight 2): Created!
+Task 3 (Weight 4): Created!
+Task 0 (Weight 1): Created!
+Task 2 (Weight 3): Created!
+
+--- 100 Schedules Reached ---
+Task 0 (Weight 1) runs: 10 times
+Task 1 (Weight 2) runs: 25 times
+Task 2 (Weight 3) runs: 31 times
+Task 3 (Weight 4) runs: 34 times
+-----------------------------
+
+--- 100 Schedules Reached ---
+Task 0 (Weight 1) runs: 6 times
+Task 1 (Weight 2) runs: 17 times
+Task 2 (Weight 3) runs: 32 times
+Task 3 (Weight 4) runs: 45 times
+-----------------------------
+
+--- 100 Schedules Reached ---
+Task 0 (Weight 1) runs: 13 times
+Task 1 (Weight 2) runs: 18 times
+Task 2 (Weight 3) runs: 25 times
+Task 3 (Weight 4) runs: 44 times
+-----------------------------
+```
+
+### 👤 薛鹏（XuePengis）
+
+**✉️ 提交邮箱**：2082994803@qq.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 最终测试 | 负责带优先级的彩票调度的测试 |
+| 协作整合 | 负责审核并合并成员分支，维护 `master` 主线完整性 |
+
+#### ✅ 测试报告
+**测试用例**
+
+见 user.c 文件代码
+
+**实验结果**
+
+```
+------------------------------------
+Hello, RVOS!
+HEAP_START = 0x80007130(aligned to 0x80008000), HEAP_SIZE = 0xffff8ecf,
+num of reserved pages = 8, num of pages to be allocated for heap = 1048559
+TEXT:   0x80000000 -> 0x80003918
+RODATA: 0x80003918 -> 0x80003d1f
+DATA:   0x80004000 -> 0x80004008
+BSS:    0x80004010 -> 0x80007130
+HEAP:   0x80010000 -> 0x7ffff000
+Setting Schedule Policy to Priority Weight...
+Task 1 (Weight 2): Created!
+Task 3 (Weight 4): Created!
+Task 0 (Weight 1): Created!
+Task 2 (Weight 3): Created!
+
+--- 100 Schedules Reached ---
+Task 0 (Weight 1) runs: 10 times
+Task 1 (Weight 2) runs: 25 times
+Task 2 (Weight 3) runs: 31 times
+Task 3 (Weight 4) runs: 34 times
+-----------------------------
+
+--- 100 Schedules Reached ---
+Task 0 (Weight 1) runs: 6 times
+Task 1 (Weight 2) runs: 17 times
+Task 2 (Weight 3) runs: 32 times
+Task 3 (Weight 4) runs: 45 times
+-----------------------------
+
+--- 100 Schedules Reached ---
+Task 0 (Weight 1) runs: 13 times
+Task 1 (Weight 2) runs: 18 times
+Task 2 (Weight 3) runs: 25 times
+Task 3 (Weight 4) runs: 44 times
+-----------------------------
+```
+
+**测试分析**
+
+提取日志中前 3 个周期（共计 300 次调度）的数据进行汇总分析：
+
+| 任务 | 权重 | 理论期望占比 | 第1周期 | 第2周期 | 第3周期 | 实际总次数 (共300次) | 实际总占比 |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Task 0** | 1 | 10.0% | 10 | 6 | 13 | **29** | **9.67%** |
+| **Task 1** | 2 | 20.0% | 25 | 17 | 18 | **60** | **20.00%** |
+| **Task 2** | 3 | 30.0% | 31 | 32 | 25 | **88** | **29.33%** |
+| **Task 3** | 4 | 40.0% | 34 | 45 | 44 | **123** | **41.00%** |
+
+
+**结论**：
+
+1. **符合概率分布特征**：从实际总占比（`9.67%`, `20.00%`, `29.33%`, `41.00%`）可以看出，实际运行结果极度贴近理论期望值（`10%`, `20%`, `30%`, `40%`）。误差范围被控制在 ±1% 左右。
+2. **随机数的波动性体现**：观察单一周期的结果（例如第 1 周期中 Task 3 只有 34 次，第 2 周期却有 45 次），可以看出伪随机数生成器（LCG）在小样本下具有合理的波动性。这是彩票调度算法的正常表现，随着总调度次数的增加（大数定律），整体分布会越来越平滑并趋近于设定权重。
+3. **有效避免饥饿（Starvation）**：尽管 Task 0 的权重只有 1，且被调度的概率最低，但它在每个周期中都获得了 CPU 执行权，没有出现被高优先级任务完全饿死的现象。
+4. 开发的优先级调度器功能通过测试，代码达到了预期的设计要求，可作为操作系统的基础调度策略进行后续应用程序的开发与测试。
+
+---
+
+### 👤 杨怡萱（yangyixuan）
+
+**✉️ 提交邮箱**：yangyixuan0829@qq.com@example.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 重构任务管理结构 | 引入 `task_info` 结构体，为 `task_create` 加上优先级参数 |
+| 实现优先级权重调度算法 | 实现线性同余伪随机数生成器，增加全局调度策略开关，分别对应 FIFO 模式和带优先级的彩票调度模式 |
+| 报告编写 | 根据实验过程编写实验报告 |
+
+#### ✅ 提交记录
+
+| 任务模块 | 提交编号 | 完成情况 |
+| :--- | :--- | :--- |
+| 重构任务管理结构 | 570eb7d | 引入 `task_info` 结构体，为 `task_create` 加上优先级参数，将**sched.c**中的 `context` 数组改为 `task_info` 数组，并修改对应逻辑的取地址方式|
+| 实现优先级权重调度算法 | e5247e6 | 实现了线性同余伪随机数生成器，用于后续的优先级调度算法，并增加全局调度策略开关，分别对应 FIFO 模式和带优先级的彩票调度模式，并修改调度器的调度逻辑，使其能够根据全局调度策略开关选择相应的调度算法 |
+
+### 👤 徐蜚遥（徐蜚遥）
+
+**✉️ 提交邮箱**：1605756286@qq.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 无 | 无 |
+
+### 👤 姚翎（Yao-Ling）
+
+**✉️ 提交邮箱**：748262229@qq.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 无 | 无 |
+
+**提交编号**  
+本次实验的最终提交编号为：e5247e6
+
