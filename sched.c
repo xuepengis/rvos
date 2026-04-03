@@ -71,11 +71,6 @@ static void schedule_weight() {
 	switch_to(next);
 }
 
-static void w_mscratch(reg_t x)
-{
-	asm volatile("csrw mscratch, %0" : : "r" (x));
-}
-
 void sched_init()
 {
 	w_mscratch(0);

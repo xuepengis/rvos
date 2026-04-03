@@ -2,6 +2,7 @@
 #define __OS_H__
 
 #include "types.h"
+#include "riscv.h"
 #include "platform.h"
 
 #include <stddef.h>
