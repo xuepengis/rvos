@@ -548,3 +548,127 @@ Task 3 (Weight 4) runs: 44 times
 **提交编号**  
 本次实验的最终提交编号为：e5247e6
 
+## 📝 第 4 次实验
+
+本次实验目标是模拟 `7 / 5 / 2 / 3` 四类同步异常，要求内核能够正确捕获异常、输出对应提示信息，并在实验触发点后继续执行。
+
+**题目要求**
+
+以教师提供的代码为基础，实现以下内容：
+
+- 理解 RISC-V 同步异常（Synchronous Exception）的基本概念与常见类型。
+- 掌握非法内存访问（访存错误）如何触发同步异常。
+- 学会配置陷阱向量（mtvec）并实现基础的异常处理函数。
+- 通过故意写入空地址，观察“存储访问错误”（Store Access Fault）。
+- 实现异常后的安全恢复，避免系统崩溃。
+- 模拟 `7 / 5 / 2 / 3` 四类同步异常，要求内核能够正确捕获异常、输出对应提示信息，并在实验触发点后继续执行。
+
+**完成情况**
+
+成功实现了 RISC-V 架构下的 Trap 异常捕获与恢复。系统现在能准确处理 非法指令 (Code 2)、断点 (Code 3) 及 访存错误 (Code 5/7)。实验证明，内核在触发异常后可以精准跳过故障指令，恢复原任务执行，展现了良好的多任务稳定性。我们在 trap_handler 中通过读取 epc 指向的指令低两位进行判断——若 (insn & 0x3) == 0x3 则判定为 32 位指令（PC +4），否则判定为 16 位指令（PC +2）。这解决了因 “硬编码`+4`”   导致的指令对齐错误和死循环。
+
+
+**执行输出**
+```
+------------------------------------
+Hello, RVOS!
+HEAP_START = 0x8000811c(aligned to 0x80009000), HEAP_SIZE = 0xffff7ee3,
+num of reserved pages = 8, num of pages to be allocated for heap = 1048558
+TEXT:   0x80000000 -> 0x80003b08
+RODATA: 0x80003b08 -> 0x80004048
+DATA:   0x80005000 -> 0x80005008
+BSS:    0x80005010 -> 0x8000811c
+HEAP:   0x80011000 -> 0x7ffff000
+Task 0: Created!
+Task 0: Running...
+
+--- Trap Test Start ---
+Testing Illegal instruction (Code 2)...
+Sync exceptions! Code = 2
+Exception: Illegal instruction!
+Testing Breakpoint (Code 3)...
+Sync exceptions! Code = 3
+Exception: Breakpoint!
+Testing Load access fault (Code 5)...
+Sync exceptions! Code = 5
+Exception: Load access fault!
+Testing Store/AMO access fault (Code 7)...
+Sync exceptions! Code = 7
+Exception: Store/AMO access fault!
+Yeah! I'm return back from trap safely!
+--- Trap Test End ---
+
+Task 1: Created!
+Task 1: Running...
+Task 0: Running...
+
+--- Trap Test Start ---
+Testing Illegal instruction (Code 2)...
+Sync exceptions! Code = 2
+Exception: Illegal instruction!
+Testing Breakpoint (Code 3)...
+Sync exceptions! Code = 3
+Exception: Breakpoint!
+Testing Load access fault (Code 5)...
+Sync exceptions! Code = 5
+Exception: Load access fault!
+Testing Store/AMO access fault (Code 7)...
+Sync exceptions! Code = 7
+Exception: Store/AMO access fault!
+Yeah! I'm return back from trap safely!
+--- Trap Test End ---
+```
+
+### 👤 薛鹏（XuePengis）
+
+**✉️ 提交邮箱**：2082994803@qq.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 协作整合 | 负责审核并合并成员分支，维护 `master` 主线完整性 |
+
+
+### 👤 杨怡萱（yangyixuan）
+
+**✉️ 提交邮箱**：yangyixuan0829@qq.com@example.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 无 | 无 |
+
+
+### 👤 徐蜚遥（徐蜚遥）
+
+**✉️ 提交邮箱**：1605756286@qq.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 基础环境搭建 | 移植 RISC-V 基础环境，确保 baseline 成功运行|
+| 四种同步异常模拟 | 实现对四种同步异常的模拟 |
+
+#### ✅ 提交记录
+
+| 任务模块 | 提交编号 | 完成情况 |
+| :--- | :--- | :--- |
+| 基础环境搭建 | a7ad3b7 | 根据已有基础代码，补充 CSR 封装部分，清理 `sched.c` 中重复的手工寄存器访问逻辑，避免调度器和 trap 路径各自维护一套 CSR 接口|
+| 四种同步异常模拟 | 31ea8f8 | 修改 `trap.c` 文件代码，顺序触发 `7/5/2/3` 四类异常并输出返回提示|
+
+### 👤 姚翎（Yao-Ling）
+
+**✉️ 提交邮箱**：748262229@qq.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 无 | 无 |
+
+**提交编号**  
+本次实验的最终提交编号为：31ea8f8
+
