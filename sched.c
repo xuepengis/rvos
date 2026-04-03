@@ -19,6 +19,58 @@ struct task_info ctx_tasks[MAX_TASKS];
 static int _top = 0;
 static int _current = -1;
 
+/* 调度策略默认保持 FIFO */
+static int sched_policy = SCHED_FIFO;
+
+void sched_set_policy(int policy) {
+	sched_policy = policy;
+}
+
+/* 简单的线性同余伪随机数生成器 */
+static uint32_t rand_seed = 123456789;
+static uint32_t os_rand(void) {
+	rand_seed = rand_seed * 1664525 + 1013904223;
+	return rand_seed;
+}
+
+/* FIFO 调度算法 */
+static void schedule_fifo() {
+	_current = (_current + 1) % _top;
+	struct context *next = &(ctx_tasks[_current].ctx);
+	switch_to(next);
+}
+
+/* 基于优先级权重的随机调度算法 */
+static void schedule_weight() {
+	int total_weight = 0;
+	
+	for (int i = 0; i < _top; i++) {
+		total_weight += ctx_tasks[i].priority;
+	}
+
+	// 如果没有权重，退化为 FIFO
+	if (total_weight <= 0) {
+		schedule_fifo();
+		return;
+	}
+
+	uint32_t r = os_rand() % total_weight;
+	
+	int accum = 0;
+	int next_task = 0;
+	for (int i = 0; i < _top; i++) {
+		accum += ctx_tasks[i].priority;
+		if (accum > r) {
+			next_task = i;
+			break;
+		}
+	}
+
+	_current = next_task;
+	struct context *next = &(ctx_tasks[_current].ctx);
+	switch_to(next);
+}
+
 static void w_mscratch(reg_t x)
 {
 	asm volatile("csrw mscratch, %0" : : "r" (x));
@@ -39,9 +91,11 @@ void schedule()
 		return;
 	}
 
-	_current = (_current + 1) % _top;
-	struct context *next = &(ctx_tasks[_current].ctx);
-	switch_to(next);
+	if (sched_policy == SCHED_PRIO) {
+		schedule_weight();
+	} else {
+		schedule_fifo();
+	}
 }
 
 /*

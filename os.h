@@ -70,4 +70,10 @@ extern int  task_create(void (*task)(void), int priority);
 extern void task_delay(volatile int count);
 extern void task_yield();
 
+// 添加策略宏定义 ...
+#define SCHED_FIFO 0
+#define SCHED_PRIO 1
+
+extern void sched_set_policy(int policy);
+
 #endif /* __OS_H__ */
