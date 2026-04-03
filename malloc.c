@@ -99,9 +99,12 @@ void *malloc(uint32_t size) {
 void malloc_test() {
 	printf("Test: Coalescing\n");
 	void *p1 = malloc(10);
+	printf("Allocated p1 at %p\n", p1);
 	void *p2 = malloc(10);
+	printf("Allocated p2 at %p\n", p2);
 	free(p1);
 	free(p2);
 	void *p3 = malloc(30); // 如果合并成功，p3 能拿到 p1 的起始地址
+	printf("Allocated p3 at %p\n", p3);
 	if (p3 == p1) printf("SUCCESS: Coalesce working!\n");
 }

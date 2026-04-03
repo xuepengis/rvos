@@ -93,20 +93,22 @@
 
 ## 📝 第 2 次实验
 
-本次实验的目标是在 RISC-V `virt` 平台上，基于现有的页分配器实现一套高效的字节级内存管理系统。实验核心在于实现 `malloc`和`free` 函数，并通过 **4 字节对齐**、**空闲块拆分与合并**等技术优化内存利用率。
+本次实验的目标是在 RISC-V `virt` 平台上，基于现有的页分配器实现一套高效的字节级内存管理系统。实验核心在于实现 `malloc` 和 `free` 函数，并通过 **4 字节对齐**、**空闲块拆分与合并** 等技术优化内存利用率。
 
 **题目要求**
 
-- **对齐**：针对 RV32I 架构，将内存对齐，使用 4 字节对齐方式，减少 Padding 浪费。
+- **对齐**：针对 RV32I 架构，采用 4 字节对齐方式，减少 Padding 浪费。
 - **结构**：设计紧凑的 `block_meta` 结构体，确保其在 4 字节对齐下不产生额外开销。
 - **功能实现**：
-    - 实现基于隐式链表的 First-fit 查找算法。
-    - 实现 `split_block` 逻辑，减少内部碎片。
-    - 实现 `coalesce` 逻辑，解决外部碎片问题。
+  - 实现基于隐式链表的 First-fit 查找算法。
+  - 实现 `split_block` 逻辑，减少内部碎片。
+  - 实现 `coalesce` 逻辑，解决外部碎片问题。
 
 **完成情况**
 
-成功实现 `字节级别` 的动态内存申请和释放，并进行测试
+成功实现字节级别的动态内存申请和释放，并进行完整测试。
+
+---
 
 ### 👤 薛鹏（XuePengis）
 
@@ -117,47 +119,148 @@
 | 任务模块 | 任务描述 |
 | :--- | :--- |
 | 架构设计 | 设计 12 字节紧凑型 `block_meta` 结构及内存布局方案 |
-| 全栈开发 | 迭代完成全部的功能开发与代码重构 |
+| 全栈开发 | 迭代完成全部功能开发与代码重构 |
 
 #### ✅ 提交记录
 
 | 任务模块 | 提交编号 | 完成情况 |
 | :--- | :--- | :--- |
-| 基础环境搭建 | 1de1fea | 根据现有代码，完成基于块的内存申请并进行测试 |
-| 在块的基础上申请内存（字节级） | 77f98f7 | 建立 `block_meta` 链表，支持向页分配器申请空间|
-| 申请内存的释放（字节级） | bb970ef | 实现 `free` 接口，引入 `is_free` 状态标记|
-| 内存分配策略优化 | d8a33d4 | 引入 First-fit 搜索，实现空闲块的循环利用 |
-| 块的空余切割 | 5b90ef8 | 实现 `split_block`，将大空闲块拆分为“占用块+新空闲块” |
-| 释放内存碎片的合并 | 502328a | 实现 `coalesce`，在释放时物理合并相邻空闲块 |
+| 基础环境搭建 | `1de1fea` | 根据现有代码，完成基于块的内存申请并进行测试 |
+| 在块的基础上申请内存（字节级） | `77f98f7` | 建立 `block_meta` 链表，支持向页分配器申请空间 |
+| 申请内存的释放（字节级） | `bb970ef` | 实现 `free` 接口，引入 `is_free` 状态标记 |
+| 内存分配策略优化 | `d8a33d4` | 引入 First-fit 搜索，实现空闲块的循环利用 |
+| 块的空余切割 | `5b90ef8` | 实现 `split_block`，将大空闲块拆分为“占用块 + 新空闲块” |
+| 释放内存碎片的合并 | `502328a` | 实现 `coalesce`，在释放时物理合并相邻空闲块 |
 
-#### ✅ 测试报告（基于 77f98f7 和 bb970ef 提交）
-* **测试用例**：分配 `p1` -> 释放 `p1` -> 分配 `p2`（大小相等）。
-* **实验结果**：
-  > `Test: Reuse`  
-  > `Block at 0x8000d00c marked as free`  
-  > `p1: 0x8000d00c, p2: 0x8000d00c`  
-  > `SUCCESS: Block reused!`
-* **结论**：验证了 First-fit 搜索逻辑正确，已能成功复用标记为 `is_free` 的内存块，避免了盲目申请新页。
+#### ✅ 测试报告
 
+**测试用例 1（基于 `77f98f7`）**
+
+```c
+void malloc_test() {
+    printf("Test: Basic Allocation\n");
+    void *p1 = malloc(10);
+    printf("p1 (10 bytes) at: %p\n", p1);
+    void *p2 = malloc(20);
+    printf("p2 (20 bytes) at: %p\n", p2);
+    void *p3 = malloc(5000);
+    printf("p3 (5000 bytes) at: %p\n", p3);
+    void *p4 = malloc(10);
+    printf("p4 (10 bytes) at: %p\n", p4);
+    void *p5 = malloc(0);
+    printf("p5 (0 bytes) at: %p\n", p5);
+}
+```
+
+**实验结果**
+
+```
+------------------------------------
+Hello, RVOS!
+HEAP_START = 0x800043f8(aligned to 0x80005000), HEAP_SIZE = 0xffffbc07,
+num of reserved pages = 8, num of pages to be allocated for heap = 1048562
+TEXT:   0x80000000 -> 0x80002f58
+RODATA: 0x80002f58 -> 0x800031a5
+DATA:   0x80004000 -> 0x80004000
+BSS:    0x80004000 -> 0x800043f8
+HEAP:   0x8000d000 -> 0x7ffff000
+Test: Basic Allocation
+p1 (10 bytes) at: 0x8000d00c
+p2 (20 bytes) at: 0x8000e00c
+p3 (5000 bytes) at: 0x8000f00c
+p4 (10 bytes) at: 0x8001100c
+p5 (0 bytes) at: 0x00000000
+```
+
+**结论**：当前 `malloc` 通过 `request_space` 向页分配器申请新内存页，且每次分配都从链表末尾追加新块，尚未复用已释放内存。但字节级内存申请能正确调用底层页分配，返回正确地址。
+
+---
+
+**测试用例 2（基于 `bb970ef`）**
+
+```c
+void malloc_test() {
+    printf("Test: Mark as Free\n");
+    void *p1 = malloc(10);
+    printf("p1 (10 bytes) at: %p\n", p1);
+    free(p1);
+    void *p2 = malloc(20);
+    printf("p2 (20 bytes) at: %p\n", p2);
+    free(p2);
+}
+```
+
+**实验结果**
+
+```
+------------------------------------
+Hello, RVOS!
+HEAP_START = 0x800043f8(aligned to 0x80005000), HEAP_SIZE = 0xffffbc07,
+num of reserved pages = 8, num of pages to be allocated for heap = 1048562
+TEXT:   0x80000000 -> 0x80002f64
+RODATA: 0x80002f64 -> 0x80003182
+DATA:   0x80004000 -> 0x80004000
+BSS:    0x80004000 -> 0x800043f8
+HEAP:   0x8000d000 -> 0x7ffff000
+Test: Mark as Free
+p1 (10 bytes) at: 0x8000d00c
+Block at 0x8000d00c marked as free
+p2 (20 bytes) at: 0x8000e00c
+Block at 0x8000e00c marked as free
+```
+
+**结论**：`free` 能正确找到对应指针位置，并将元数据中的 `is_free` 位置 1，表示释放成功。
+
+---
 
 ### 👤 杨怡萱（yangyixuan）
 
-**✉️ 提交邮箱**：yangyixuan0829@qq.com@example.com
+**✉️ 提交邮箱**：yangyixuan0829@qq.com
 
 #### 📌 任务分工
 
 | 任务模块 | 任务描述 |
 | :--- | :--- |
-| 功能测试 | 专项验证 d8a33d4 版本的“块复用（Reuse）”逻辑 |
+| 功能测试 | 专项验证 `d8a33d4` 版本的“块复用（Reuse）”逻辑 |
 
-#### ✅ 测试报告（基于 d8a33d4 提交）
-* **测试用例**：分配 `p1` -> 释放 `p1` -> 分配 `p2`（大小相等）。
-* **实验结果**：
-  > `Test: Reuse`  
-  > `Block at 0x8000d00c marked as free`  
-  > `p1: 0x8000d00c, p2: 0x8000d00c`  
-  > `SUCCESS: Block reused!`
-* **结论**：验证了 First-fit 搜索逻辑正确，已能成功复用标记为 `is_free` 的内存块，避免了盲目申请新页。
+#### ✅ 测试报告（基于 `d8a33d4`）
+
+**测试用例**
+
+```c
+void malloc_test() {
+    printf("Test: Reuse\n");
+    void *p1 = malloc(10);
+    printf("p1: %p\n", p1);
+    free(p1);
+    void *p2 = malloc(10);
+    printf("p2: %p\n", p2);
+    if (p1 == p2) printf("SUCCESS: Block reused!\n");
+}
+```
+
+**实验结果**
+
+```
+------------------------------------
+Hello, RVOS!
+HEAP_START = 0x800043f8(aligned to 0x80005000), HEAP_SIZE = 0xffffbc07,
+num of reserved pages = 8, num of pages to be allocated for heap = 1048562
+TEXT:   0x80000000 -> 0x80003000
+RODATA: 0x80003000 -> 0x80003214
+DATA:   0x80004000 -> 0x80004000
+BSS:    0x80004000 -> 0x800043f8
+HEAP:   0x8000d000 -> 0x7ffff000
+Test: Reuse
+p1: 0x8000d00c
+Block at 0x8000d00c marked as free
+p2: 0x8000d00c
+SUCCESS: Block reused!
+```
+
+**结论**：验证了 First-fit 搜索逻辑正确，已能成功复用标记为 `is_free` 的内存块，避免盲目申请新页。
+
+---
 
 ### 👤 徐蜚遥（徐蜚遥）
 
@@ -167,16 +270,49 @@
 
 | 任务模块 | 任务描述 |
 | :--- | :--- |
-| 功能测试 | 验证 5b90ef8 版本的“内存拆分（Splitting）”功能 |
+| 功能测试 | 验证 `5b90ef8` 版本的“内存拆分（Splitting）”功能 |
 
-#### ✅ 测试报告（基于 5b90ef8 提交）
-* **测试用例**：申请 100 字节 -> 释放 -> 申请两个小字节块。
-* **实验结果**：
-  > `Test: Splitting`  
-  > `p2: 0x8000d00c, p3: 0x8000d02c`
-* **计算推导**：
-  `p2_addr(0x...0c) + META(12) + Aligned_Data(20) = 0x8000d02c`，该地址恰好为 `p3` 的数据起始点。
-* **结论**：验证了 `split_block` 逻辑。分配器不再浪费整个页大块，而是精确切割并产生了新的管理头。
+#### ✅ 测试报告（基于 `5b90ef8`）
+
+**测试用例**
+
+```c
+void malloc_test() {
+    printf("Test: Splitting\n");
+    void *p1 = malloc(100);
+    printf("p1: %p\n", p1);
+    free(p1);
+    void *p2 = malloc(20); // 会拆分 p1 之前的空间
+    void *p3 = malloc(20); // 会占用 p1 拆分出来的下一段空间
+    printf("p2: %p, p3: %p\n", p2, p3);
+}
+```
+
+**实验结果**
+
+```
+------------------------------------
+Hello, RVOS!
+HEAP_START = 0x800043f8(aligned to 0x80005000), HEAP_SIZE = 0xffffbc07,
+num of reserved pages = 8, num of pages to be allocated for heap = 1048562
+TEXT:   0x80000000 -> 0x800030a0
+RODATA: 0x800030a0 -> 0x800032a8
+DATA:   0x80004000 -> 0x80004000
+BSS:    0x80004000 -> 0x800043f8
+HEAP:   0x8000d000 -> 0x7ffff000
+Test: Splitting
+p1: 0x8000d00c
+Block at 0x8000d00c marked as free
+p2: 0x8000d00c, p3: 0x8000d02c
+```
+
+**计算推导**
+
+`p2_addr(0x8000d00c) + META(12) + Aligned_Data(20) = 0x8000d02c`，该地址恰好为 `p3` 的数据起始点。
+
+**结论**：验证了 `split_block` 逻辑。分配器不再浪费整个页大块，而是精确切割并产生新的管理头。
+
+---
 
 ### 👤 姚翎（Yao-Ling）
 
@@ -186,16 +322,51 @@
 
 | 任务模块 | 任务描述 |
 | :--- | :--- |
-| 功能测试 | 验证 502328a 版本的“相邻块合并（Coalescing）”功能 |
+| 功能测试 | 验证 `502328a` 版本的“相邻块合并（Coalescing）”功能 |
 
-#### ✅ 测试报告（基于 502328a 提交）
-* **测试用例**：释放两个物理相邻的块 -> 申请一个覆盖两者总和的大块。
-* **实验结果**：
-  > `Test: Coalescing`  
-  > `Block at 0x8000d00c marked as free`  
-  > `Block at 0x8000e00c marked as free`  
-  > `SUCCESS: Coalesce working!`
-* **结论**：验证了 `coalesce` 函数能够正确识别物理上相邻的空闲块并修改 `next` 指针完成合并。这有效解决了外部碎片导致无法分配大对象的问题。
+#### ✅ 测试报告（基于 `502328a`）
+
+**测试用例**
+
+```c
+void malloc_test() {
+    printf("Test: Coalescing\n");
+    void *p1 = malloc(10);
+    printf("Allocated p1 at %p\n", p1);
+    void *p2 = malloc(10);
+    printf("Allocated p2 at %p\n", p2);
+    free(p1);
+    free(p2);
+    void *p3 = malloc(30); // 如果合并成功，p3 能拿到 p1 的起始地址
+    printf("Allocated p3 at %p\n", p3);
+    if (p3 == p1) printf("SUCCESS: Coalesce working!\n");
+}
+```
+
+**实验结果**
+
+```
+------------------------------------
+Hello, RVOS!
+HEAP_START = 0x800043f8(aligned to 0x80005000), HEAP_SIZE = 0xffffbc07,
+num of reserved pages = 8, num of pages to be allocated for heap = 1048562
+TEXT:   0x80000000 -> 0x80003174
+RODATA: 0x80003174 -> 0x800033bc
+DATA:   0x80004000 -> 0x80004000
+BSS:    0x80004000 -> 0x800043f8
+HEAP:   0x8000d000 -> 0x7ffff000
+Test: Coalescing
+Allocated p1 at 0x8000d00c
+Allocated p2 at 0x8000e00c
+Block at 0x8000d00c marked as free
+Block at 0x8000e00c marked as free
+Allocated p3 at 0x8000d00c
+SUCCESS: Coalesce working!
+```
+
+**结论**：验证了 `coalesce` 函数能够正确识别物理上相邻的空闲块并修改 `next` 指针完成合并，有效解决了外部碎片导致无法分配大对象的问题。
+
+---
 
 **提交编号**  
 本次实验的最终提交编号为：
