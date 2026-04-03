@@ -60,7 +60,13 @@ struct context {
 	reg_t t6;
 };
 
-extern int  task_create(void (*task)(void));
+/* 任务控制块 TCB */
+struct task_info {
+	struct context ctx;
+	int priority; // 任务优先级
+};
+
+extern int  task_create(void (*task)(void), int priority);
 extern void task_delay(volatile int count);
 extern void task_yield();
 

@@ -25,7 +25,7 @@ void user_task1(void)
 /* NOTICE: DON'T LOOP INFINITELY IN main() */
 void os_main(void)
 {
-	task_create(user_task0);
-	task_create(user_task1);
+	task_create(user_task0, 1);
+	task_create(user_task1, 1);
 }
 

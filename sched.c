@@ -10,7 +10,7 @@ extern void switch_to(struct context *next);
  * is always 16-byte aligned.
  */
 uint8_t __attribute__((aligned(16))) task_stack[MAX_TASKS][STACK_SIZE];
-struct context ctx_tasks[MAX_TASKS];
+struct task_info ctx_tasks[MAX_TASKS];
 
 /*
  * _top is used to mark the max available position of ctx_tasks
@@ -40,7 +40,7 @@ void schedule()
 	}
 
 	_current = (_current + 1) % _top;
-	struct context *next = &(ctx_tasks[_current]);
+	struct context *next = &(ctx_tasks[_current].ctx);
 	switch_to(next);
 }
 
@@ -52,11 +52,12 @@ void schedule()
  * 	0: success
  * 	-1: if error occured
  */
-int task_create(void (*start_routin)(void))
+int task_create(void (*start_routin)(void), int priority)
 {
 	if (_top < MAX_TASKS) {
-		ctx_tasks[_top].sp = (reg_t) &task_stack[_top][STACK_SIZE];
-		ctx_tasks[_top].ra = (reg_t) start_routin;
+		ctx_tasks[_top].ctx.sp = (reg_t) &task_stack[_top][STACK_SIZE];
+		ctx_tasks[_top].ctx.ra = (reg_t) start_routin;
+		ctx_tasks[_top].priority = priority;
 		_top++;
 		return 0;
 	} else {
