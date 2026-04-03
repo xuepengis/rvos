@@ -13,6 +13,7 @@ SRCS_C = \
 	sched.c \
 	malloc.c  \
 	user.c \
+	trap.c \
 	
 DEFS +=
 
