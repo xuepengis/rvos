@@ -6,15 +6,24 @@
  */
 extern void uart_init(void);
 extern void page_init(void);
+extern void sched_init(void);
+extern void schedule(void);
+extern void os_main(void);
 
 void start_kernel(void)
 {
 	uart_init();
 	uart_puts("Hello, RVOS!\n");
+
 	page_init();
 
-	malloc_test(); // 执行测试
+	sched_init();
 
-	while (1) {};
+	os_main();
+
+	schedule();
+
+	uart_puts("Would not go here!\n");
+	while (1) {}; // stop here!
 }
 
