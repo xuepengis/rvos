@@ -75,11 +75,19 @@ void uart_puts(char *s)
 	}
 }
 
+/*
+ * 从环形队列中读取字符
+ */
 int uart_getc(void)
 {
-	while (0 == (uart_read_reg(LSR) & LSR_RX_READY))
-		;
-	return uart_read_reg(RHR);
+	// 如果读写指针相同，说明队列为空，等待中断写入
+	while (uart_buf_r == uart_buf_w) {
+		// 加一个延时，让 CPU 大部分时间停留在安全的普通代码区
+		task_delay(10); 
+	}
+	char c = uart_buf[uart_buf_r];
+	uart_buf_r = (uart_buf_r + 1) % UART_BUF_SIZE;
+	return c;
 }
 
 /*
