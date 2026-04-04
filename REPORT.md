@@ -672,3 +672,105 @@ Yeah! I'm return back from trap safely!
 **提交编号**  
 本次实验的最终提交编号为：31ea8f8
 
+## 📝 第 5 次实验
+
+本次实验目标是利用中断机制，实现从键盘获取整行输入，输出整行数据，和自定义的提示信息。
+
+**题目要求**
+
+以教师提供的代码为基础，实现以下内容：
+
+- 理解 RISC-V 外部中断（External Interrupt）的基本概念与处理流程。
+- 掌握 UART 控制器中断的使能与配置方法。
+- 学会实现中断处理程序（Interrupt Service Routine, ISR）。
+- 通过 UART 接收中断实现字符回显功能。
+- 理解中断嵌套与上下文保存的完整性。
+- 实现从键盘获取整行输入，输出整行数据，和自定义的提示信息。
+
+**完成情况**
+
+已完成第 5 次实验的全部要求。新增 `plic.c`，并在 `platform.h` 中补充 UART0 的 PLIC 中断源定义与 machine-mode 所需寄存器映射；`kernel.c` 的启动流程也已经在 `trap_init()` 之后接入 `plic_init()`，使 UART 外部中断能够在内核启动后立即被启用。在串口输入路径上，为 UART 设计了一个中断驱动的环形接收缓冲区：UART 中断服务函数负责把收到的字符规范化后写入软件队列，命令任务则在用户态循环从 `uart_getc()` 读取缓冲内容并自行完成回显、退格处理和回车提交。最终 `user.c` 中的 `command_task` 被替换为单一交互任务，启动后首先打印 `Task cmd: Created! `，随后不断读取一整行命令；当检测到回车时，内核输出 `The command is: <cmd>`，并继续显示 `What should I do? ` 提示，进入下一轮等待。
+
+
+**执行输出**
+```
+------------------------------------
+Hello, RVOS!
+HEAP_START = 0x8000819c(aligned to 0x80009000), HEAP_SIZE = 0xffff7e63,
+num of reserved pages = 8, num of pages to be allocated for heap = 1048558
+TEXT:   0x80000000 -> 0x80003fac
+RODATA: 0x80003fac -> 0x800044fc
+DATA:   0x80005000 -> 0x80005008
+BSS:    0x80005010 -> 0x8000819c
+HEAP:   0x80011000 -> 0x7ffff000
+Task cmd: Created!
+fhaujkdfhdsuf
+The command is: fhaujkdfhdsuf
+What should I do?
+vhreuia
+The command is: vhreuia
+What should I do?
+bvsuai
+The command is: bvsuai
+What should I do?
+vbruiea
+The command is: vbruiea
+What should I do?
+```
+
+### 👤 薛鹏（XuePengis）
+
+**✉️ 提交邮箱**：2082994803@qq.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 协作整合 | 负责审核并合并成员分支，维护 `master` 主线完整性 |
+
+
+### 👤 杨怡萱（yangyixuan）
+
+**✉️ 提交邮箱**：yangyixuan0829@qq.com@example.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 无 | 无 |
+
+
+### 👤 徐蜚遥（徐蜚遥）
+
+**✉️ 提交邮箱**：1605756286@qq.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 无 | 无 |
+
+### 👤 姚翎（Yao-Ling）
+
+**✉️ 提交邮箱**：748262229@qq.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 基础环境搭建 | 移植 RISC-V 基础环境，确保 baseline 成功运行|
+| 输入环形缓冲队列实现 | 为 UART 设计实现中断驱动的环形接收缓冲区 |
+| 环形队列输出 | 改写 `uart_getc` 实现从环形队列读取 |
+| 命令输入与交互式输出 | 从命令行读取字符串，在按下回车后输出识别到的命令内容。实现循环式交互，使系统在处理完一条命令后继续等待下一条命令输入。 |
+
+#### ✅ 提交记录
+
+| 任务模块 | 提交编号 | 完成情况 |
+| :--- | :--- | :--- |
+| 基础环境搭建 | aef0742 | 移植 RISC-V 基础环境，确保 baseline 成功运行|
+| 输入环形缓冲队列实现 | 1d1c500 | 实现中断驱动的环形接收缓冲区，设置缓冲区长度为128 |
+| 环形队列输出 | 94f5cf6 | 改写 `uart_getc` 实现从环形队列读取已经存入的字符 |
+| 命令输入与交互式输出 | 48f395e | 从命令行读取字符串，处理输入回退等，在按下回车后输出识别到的命令内容。实现循环式交互，使系统在处理完一条命令后继续等待下一条命令输入。 |
+
+**提交编号**  
+本次实验的最终提交编号为：48f395e
