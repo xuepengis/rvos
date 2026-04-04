@@ -102,6 +102,12 @@ void uart_init()
 	 */
 	lcr = 0;
 	uart_write_reg(LCR, lcr | (3 << 0));
+
+	/*
+	 * enable receive interrupts.
+	 */
+	uint8_t ier = uart_read_reg(IER);
+	uart_write_reg(IER, ier | (1 << 0));
 }
 
 int uart_putc(char ch)
@@ -117,3 +123,19 @@ void uart_puts(char *s)
 	}
 }
 
+int uart_getc(void)
+{
+	while (0 == (uart_read_reg(LSR) & LSR_RX_READY))
+		;
+	return uart_read_reg(RHR);
+}
+
+/*
+ * handle a uart interrupt, raised because input has arrived, called from trap.c.
+ */
+void uart_isr(void)
+{
+	uart_putc((char)uart_getc());
+	/* add a new line just to look better */
+	uart_putc('\n');
+}
