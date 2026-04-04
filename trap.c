@@ -1,6 +1,7 @@
 #include "os.h"
 
 extern void trap_vector(void);
+extern void uart_isr(void);
 
 /**
  * 初始化 Trap 向量表
@@ -10,6 +11,22 @@ void trap_init()
     /* 设置机器模式（Machine Mode）的陷阱向量基地址 */
     w_mtvec((reg_t)trap_vector);
 }
+
+void external_interrupt_handler()
+{
+	int irq = plic_claim();
+
+	if (irq == UART0_IRQ){
+      		uart_isr();
+	} else if (irq) {
+		printf("unexpected interrupt irq = %d\n", irq);
+	}
+	
+	if (irq) {
+		plic_complete(irq);
+	}
+}
+
 
 /**
  * Trap 处理程序
@@ -31,7 +48,8 @@ reg_t trap_handler(reg_t epc, reg_t cause)
             uart_puts("timer interruption!\n");
             break;
         case 11:
-            uart_puts("external interruption!\n");
+            // uart_puts("external interruption!\n");
+			external_interrupt_handler();
             break;
         default:
             printf("Unknown async exception! Code = %ld\n", cause_code);

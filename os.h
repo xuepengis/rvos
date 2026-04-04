@@ -77,4 +77,8 @@ extern void task_yield();
 
 extern void sched_set_policy(int policy);
 
+/* plic */
+extern int plic_claim(void);
+extern void plic_complete(int irq);
+
 #endif /* __OS_H__ */

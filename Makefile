@@ -14,6 +14,7 @@ SRCS_C = \
 	malloc.c  \
 	user.c \
 	trap.c \
+	plic.c \
 	
 DEFS +=
 
