@@ -774,3 +774,132 @@ What should I do?
 
 **提交编号**  
 本次实验的最终提交编号为：48f395e
+
+## 📝 第 6 次实验
+
+本次实验目标是实现硬件定时器，在指定时间间隔内输出tck信息。
+
+**题目要求**
+
+以教师提供的代码为基础，实现以下内容：
+- 理解 RISC-V 平台中 CLINT（Core-Local Interruptor）模块的作用。
+- 掌握硬件定时器（Timer）中断的配置与使能方法。
+- 学会实现定时器中断服务程序（ISR）。
+- 通过定时器中断实现周期性任务（如打印信息）。
+- 区分“中断处理”与“抢占式调度”的不同。
+
+
+**完成情况**
+
+已完成第 6 次实验的全部要求。新增 `timer.c`，并在 `platform.h` 中补充相关定义；`kernel.c` 的启动流程也已经在 `plic_init()` 之后接入 `timer_init()`，成功移植代码并能够正确输出信息
+
+
+**执行输出**
+```
+------------------------------------
+Hello, RVOS!
+HEAP_START = 0x800081a0(aligned to 0x80009000), HEAP_SIZE = 0xffff7e5f,
+num of reserved pages = 8, num of pages to be allocated for heap = 1048558
+TEXT:   0x80000000 -> 0x80004100
+RODATA: 0x80004100 -> 0x80004652
+DATA:   0x80005000 -> 0x80005008
+BSS:    0x80005010 -> 0x800081a0
+HEAP:   0x80011000 -> 0x7ffff000
+Task 0: Created!
+Task 0: Running...
+Task 1: Created!
+Task 1: Running...
+Task 0: Running...
+Task 1: Running...
+Task 0: Running...
+Task 1: Running...
+Task 0: Running...
+Task 1: Running...
+Task 0: Running...
+Task 1: Running...
+Task 0: Running...
+timer interruption!
+tick: 1
+Task 1: Running...
+Task 0: Running...
+Task 1: Running...
+Task 0: Running...
+Task 1: Running...
+Task 0: Running...
+Task 1: Running...
+Task 0: Running...
+Task 1: Running...
+Task 0: Running...
+Task 1: Running...
+timer interruption!
+tick: 2
+Task 0: Running...
+Task 1: Running...
+Task 0: Running...
+Task 1: Running...
+Task 0: Running...
+Task 1: Running...
+Task 0: Running...
+Task 1: Running...
+Task 0: Running...
+Task 1: Running...
+Task 0: Running...
+timer interruption!
+tick: 3
+Task 1: Running...
+Task 0: Running...
+Task 1: Running...
+Task 0: Running...
+Task 1: Running...
+```
+
+### 👤 薛鹏（XuePengis）
+
+**✉️ 提交邮箱**：2082994803@qq.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 协作整合 | 负责审核并合并成员分支，维护 `master` 主线完整性 |
+| 移植代码 | 将教师提供的源代码适配整合到当前版本 |
+
+#### ✅ 提交记录
+
+| 任务模块 | 提交编号 | 完成情况 |
+| :--- | :--- | :--- |
+| 基础环境搭建 | a92a9b0 | 移植 RISC-V 基础环境，确保 baseline 成功运行，并成功输出，完成实验要求|
+
+### 👤 杨怡萱（yangyixuan）
+
+**✉️ 提交邮箱**：yangyixuan0829@qq.com@example.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 无 | 无 |
+
+
+### 👤 徐蜚遥（徐蜚遥）
+
+**✉️ 提交邮箱**：1605756286@qq.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 无 | 无 |
+
+### 👤 姚翎（Yao-Ling）
+
+**✉️ 提交邮箱**：748262229@qq.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 无 | 无 |
+
+**提交编号**  
+本次实验的最终提交编号为：a92a9b0
