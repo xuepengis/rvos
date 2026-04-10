@@ -107,7 +107,9 @@ int task_create(void (*start_routin)(void), int priority)
 {
 	if (_top < MAX_TASKS) {
 		ctx_tasks[_top].ctx.sp = (reg_t) &task_stack[_top][STACK_SIZE];
-		ctx_tasks[_top].ctx.ra = (reg_t) start_routin;
+		// ctx_tasks[_top].ctx.ra = (reg_t) start_routin;
+        // 👇 新增 pc 初始化，指向任务的起始地址
+		ctx_tasks[_top].ctx.pc = (reg_t) start_routin; 
 		ctx_tasks[_top].priority = priority;
 		_top++;
 		return 0;
@@ -123,7 +125,9 @@ int task_create(void (*start_routin)(void), int priority)
  */
 void task_yield()
 {
-	schedule();
+	// 👇 不再直接调用 schedule()，而是通过写 CLINT MSIP 寄存器触发软件中断
+	int id = r_mhartid();
+	*(uint32_t*)CLINT_MSIP(id) = 1;
 }
 
 /*
