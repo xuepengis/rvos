@@ -903,3 +903,120 @@ Task 1: Running...
 
 **提交编号**  
 本次实验的最终提交编号为：a92a9b0
+
+## 📝 第 6 次实验
+
+实现抢占式任务切换（通过timer interrupt）和协同式任务切换（通过software interrupt）相结合，看到多个任务切换的效果.
+
+**题目要求**
+
+以教师提供的代码为基础，实现以下内容：
+- 理解 RISC-V 机器模式陷阱向量（trap vector）的完整处理流程。
+- 掌握在汇编层面对所有通用寄存器进行保存与恢复的方法。
+- 学会正确处理 mscratch 寄存器在上下文切换中的特殊角色。
+- 理解 t6 寄存器作为 reg_save/reg_restore 基地址的巧妙设计。
+- 实现一个健壮、完整的上下文切换机制，为后续功能（如系统调用）打下基础。
+
+
+
+**完成情况**
+
+已完成第 7 次实验的全部要求。改写 `entry.S` 中的 `switch_to` 函数，并在 `sched.c` 中完善调度策略，使得抢占式任务切换和协同式任务切换能够相互配合，并能够正确输出信息
+
+
+**执行输出**
+```
+------------------------------------
+Hello, RVOS!
+HEAP_START = 0x800081c8(aligned to 0x80009000), HEAP_SIZE = 0xffff7e37,
+num of reserved pages = 8, num of pages to be allocated for heap = 1048558
+TEXT:   0x80000000 -> 0x800041a8
+RODATA: 0x800041a8 -> 0x80004766
+DATA:   0x80005000 -> 0x80005008
+BSS:    0x80005010 -> 0x800081c8
+HEAP:   0x80011000 -> 0x7ffff000
+Task 0: Created!
+software interruption!
+Task 1: Created!
+Task 1: Running (Preemptive)...
+Task 1: Running (Preemptive)...
+Task 1: Running (Preemptive)...
+timer interruption!
+tick: 1
+Task 2: Created!
+Task 2: Running (Preemptive)...
+Task 2: Running (Preemptive)...
+Task 2: Running (Preemptive)...
+timer interruption!
+tick: 2
+Task 0: I'm back!
+Task 0: Running (Cooperative)...
+software interruption!
+Task 1: Running (Preemptive)...
+Task 1: Running (Preemptive)...
+timer interruption!
+tick: 3
+Task 2: Running (Preemptive)...
+Task 2: Running (Preemptive)...
+Task 2: Running (Preemptive)...
+timer interruption!
+tick: 4
+Task 0: Running (Cooperative)...
+software interruption!
+QEMU: Terminated
+```
+
+### 👤 薛鹏（XuePengis）
+
+**✉️ 提交邮箱**：2082994803@qq.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 协作整合 | 负责审核并合并成员分支，维护 `master` 主线完整性 |
+| 移植代码 | 将教师提供的源代码适配整合到当前版本 |
+| 优化中断开启的时机 | 将全局中断的开启推迟到第一次 `schedule()` 启动任务之时，保证多方式切换的正确性 |
+| 编写多任务测试用例验证混合调度 | 编写多个任务的测试用例，验证混合调度的正确性 |
+
+#### ✅ 提交记录
+
+| 任务模块 | 提交编号 | 完成情况 |
+| :--- | :--- | :--- |
+| 基础环境搭建 | ee5e79a | 移植 RISC-V 基础环境，确保 baseline 成功运行，并成功输出|
+| 优化中断开启的时机 | b769638 | 当前代码在 `timer_init()` 中就开启了全局中断（MSTATUS_MIE），导致无法实现多任务切换，因此我们应该将全局中断的开启推迟到第一次 `schedule()` 启动任务之时。|
+| 编写多任务测试用例验证混合调度 | bec7db4 | 编写明确的测试代码，Task 0：纯协同式任务，主动调用 task_yield() 让出 CPU。Task 1 和 Task 2：死循环型计算任务（不调用 yield），用来验证定时器中断是否能强制抢占它们。|
+
+### 👤 杨怡萱（yangyixuan）
+
+**✉️ 提交邮箱**：yangyixuan0829@qq.com@example.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 无 | 无 |
+
+
+### 👤 徐蜚遥（徐蜚遥）
+
+**✉️ 提交邮箱**：1605756286@qq.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 无 | 无 |
+
+### 👤 姚翎（Yao-Ling）
+
+**✉️ 提交邮箱**：748262229@qq.com
+
+#### 📌 任务分工
+
+| 任务模块 | 任务描述 |
+| :--- | :--- |
+| 无 | 无 |
+
+**提交编号**  
+本次实验的最终提交编号为：bec7db4
