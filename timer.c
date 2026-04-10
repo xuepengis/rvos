@@ -27,8 +27,8 @@ void timer_init()
 	/* enable machine-mode timer interrupts. */
 	w_mie(r_mie() | MIE_MTIE);
 
-	/* enable machine-mode global interrupts. */
-	w_mstatus(r_mstatus() | MSTATUS_MIE);
+	/* 移除这一行：不要过早开启全局中断 */
+	// w_mstatus(r_mstatus() | MSTATUS_MIE); 
 }
 
 void timer_handler() 
