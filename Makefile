@@ -20,6 +20,8 @@ QFLAGS = -nographic -smp 1 -machine virt -bios none
 
 GDB = gdb-multiarch
 CC = ${CROSS_COMPILE}gcc
+# 新增：定义 objcopy 工具
+OBJCOPY = ${CROSS_COMPILE}objcopy
 MKDIR = mkdir -p
 RM = rm -rf
 
@@ -30,11 +32,14 @@ OBJS_C   := $(addprefix $(OUTPUT_PATH)/, $(patsubst %.c, %.o, ${SRCS_C}))
 OBJS = ${OBJS_ASM} ${OBJS_C}
 
 ELF = ${OUTPUT_PATH}/os.elf
+# 新增：定义目标 bin 文件路径
+BIN = ${OUTPUT_PATH}/os.bin
 
 LDFLAGS = -T os.ld
 
 .DEFAULT_GOAL := all
-all: ${OUTPUT_PATH} ${ELF}
+# 修改：将 ${BIN} 加入默认构建目标
+all: ${OUTPUT_PATH} ${ELF} ${BIN}
 
 ${OUTPUT_PATH}:
 	@${MKDIR} $@
@@ -42,6 +47,10 @@ ${OUTPUT_PATH}:
 # start.o must be the first in dependency!
 ${ELF}: ${OBJS}
 	${CC} ${CFLAGS} ${LDFLAGS} -o ${ELF} $^
+
+# 新增：通过 objcopy 将 elf 转换为纯二进制 bin 文件
+${BIN}: ${ELF}
+	${OBJCOPY} -O binary ${ELF} ${BIN}
 
 ${OUTPUT_PATH}/%.o : %.c
 	${CC} ${DEFS} ${CFLAGS} -c -o $@ $<
