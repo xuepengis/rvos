@@ -1,107 +1,53 @@
-#include "os.h"
+#include "types.h"
+#include "platform.h"
 
-/*
- * The UART control registers are memory-mapped at address UART0. 
- * This macro returns the address of one of the registers.
- */
-#define UART_REG(reg) ((volatile uint8_t *)(UART0 + reg))
-
-/*
- * Reference
- * [1]: TECHNICAL DATA ON 16550, http://byterunner.com/16550.html
- */
-
-/*
- * UART control registers map. see [1] "PROGRAMMING TABLE"
- * note some are reused by multiple functions
- * 0 (write mode): THR/DLL
- * 1 (write mode): IER/DLM
- */
-#define RHR 0	// Receive Holding Register (read mode)
-#define THR 0	// Transmit Holding Register (write mode)
-#define DLL 0	// LSB of Divisor Latch (write mode)
-#define IER 1	// Interrupt Enable Register (write mode)
-#define DLM 1	// MSB of Divisor Latch (write mode)
-#define FCR 2	// FIFO Control Register (write mode)
-#define ISR 2	// Interrupt Status Register (read mode)
-#define LCR 3	// Line Control Register
-#define MCR 4	// Modem Control Register
-#define LSR 5	// Line Status Register
-#define MSR 6	// Modem Status Register
-#define SPR 7	// ScratchPad Register
-
-#define LSR_RX_READY (1 << 0)
-#define LSR_TX_IDLE  (1 << 5)
-
-#define uart_read_reg(reg) (*(UART_REG(reg)))
-#define uart_write_reg(reg, v) (*(UART_REG(reg)) = (v))
-
-/* === 环形队列实现 (Ring Buffer) === */
-#define UART_BUF_SIZE 128
-static char uart_buf[UART_BUF_SIZE];
-static volatile int uart_buf_r = 0; // 读指针
-static volatile int uart_buf_w = 0; // 写指针
+// 宏定义：在 LiteX UART 中，bit 0 是 TX，bit 1 是 RX
+#define UART_EV_TX (1 << 0)
+#define UART_EV_RX (1 << 1)
 
 void uart_init()
 {
-	/* disable interrupts. */
-	uart_write_reg(IER, 0x00);
-
-	/* Setting baud rate. */
-	uint8_t lcr = uart_read_reg(LCR);
-	uart_write_reg(LCR, lcr | (1 << 7));
-	uart_write_reg(DLL, 0x03);
-	uart_write_reg(DLM, 0x00);
-
-	/* Continue setting the asynchronous data communication format. */
-	lcr = 0;
-	uart_write_reg(LCR, lcr | (3 << 0));
-
-	/* enable receive interrupts. */
-	uint8_t ier = uart_read_reg(IER);
-	uart_write_reg(IER, ier | (1 << 0));
+    // 1. 清除一切残留的挂起事件 (写 1 清零)
+    *(volatile uint32_t *)CSR_UART_EV_PENDING_ADDR = UART_EV_TX | UART_EV_RX;
+    
+    // 2. 【核心修复】：只写入 2 (UART_EV_RX)，坚决不要写 1！
+    *(volatile uint32_t *)CSR_UART_EV_ENABLE_ADDR = UART_EV_RX;
 }
 
-int uart_putc(char ch)
+void uart_putc(char c)
 {
-	while ((uart_read_reg(LSR) & LSR_TX_IDLE) == 0);
-	return uart_write_reg(THR, ch);
+    while (*(volatile uint32_t *)CSR_UART_TXFULL_ADDR != 0);
+    *(volatile uint32_t *)CSR_UART_RXTX_ADDR = c;
 }
 
 void uart_puts(char *s)
 {
-	while (*s) {
-		uart_putc(*s++);
-	}
+    while (*s) {
+        uart_putc(*s++);
+    }
 }
 
-/*
- * 从环形队列中读取字符
- */
 int uart_getc(void)
 {
-	// 如果读写指针相同，说明队列为空，等待中断写入
-	while (uart_buf_r == uart_buf_w) {
-		// 加一个延时，让 CPU 大部分时间停留在安全的普通代码区
-		task_delay(10); 
-	}
-	char c = uart_buf[uart_buf_r];
-	uart_buf_r = (uart_buf_r + 1) % UART_BUF_SIZE;
-	return c;
+    if (*(volatile uint32_t *)CSR_UART_RXEMPTY_ADDR != 0) {
+        return -1;
+    }
+    return *(volatile uint32_t *)CSR_UART_RXTX_ADDR;
 }
 
-/*
- * 每次中断发生时，将接收到的字符放入环形队列
- */
 void uart_isr(void)
 {
-	while (uart_read_reg(LSR) & LSR_RX_READY) {
-		char c = uart_read_reg(RHR);
-		int next_w = (uart_buf_w + 1) % UART_BUF_SIZE;
-		// 如果队列未满，就存入；满了就直接丢弃
-		if (next_w != uart_buf_r) {
-			uart_buf[uart_buf_w] = c;
-			uart_buf_w = next_w;
-		}
-	}
+    uint32_t pending = *(volatile uint32_t *)CSR_UART_EV_PENDING_ADDR;
+    
+    // 如果是 RX 接收中断，我们就读取字符并回显
+    if (pending & UART_EV_RX) {
+        while (1) {
+            int c = uart_getc();
+            if (c == -1) break;
+            uart_putc((char)c);
+            uart_putc('\n');
+        }
+        // 清除 RX 中断标志
+        *(volatile uint32_t *)CSR_UART_EV_PENDING_ADDR = UART_EV_RX;
+    }
 }

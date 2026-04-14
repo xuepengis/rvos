@@ -20,15 +20,22 @@ void start_kernel(void)
 
 	page_init();
 
-	trap_init();
-
-	plic_init();
-
-	timer_init();
+	malloc_test();
 
 	sched_init();
+	uart_puts("sched_init finish\n");
+
+	trap_init();
+	uart_puts("trap_init finish\n");
+
+	plic_init();
+	uart_puts("plic_init finish\n");
+
+	timer_init();
+	uart_puts("timer_init finish\n");
 
 	os_main();
+	uart_puts("os_main finish\n");
 
 	schedule();
 
