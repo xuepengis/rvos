@@ -23,7 +23,11 @@
  * 0x80000000 -- boot ROM jumps here in machine mode, where we load our kernel
  */
 
-/* This machine puts UART registers here in physical memory. */
-#define UART0 0x10000000L
+/* 定义 LiteX 硬件的基地址 */
+#define CSR_BASE 0xf0000000L
+
+/* LiteX UART 寄存器地址 */
+#define CSR_UART_RXTX_ADDR   (CSR_BASE + 0x1800L)
+#define CSR_UART_TXFULL_ADDR (CSR_BASE + 0x1804L)
 
 #endif /* __PLATFORM_H__ */
