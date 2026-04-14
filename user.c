@@ -44,3 +44,36 @@ void os_main(void)
 	task_create(user_task1, 1);
 	task_create(user_task2, 1);
 }
+
+// 下面对应实验四的压力测试：连续触发多种异常，验证 Trap 处理程序的健壮性
+// extern void trap_test(void);
+
+// void user_task0(void)
+// {
+// 	uart_puts("Task 0: Created!\n");
+// 	while (1) {
+// 		uart_puts("Task 0: Running...\n");
+		
+// 		trap_test();
+
+// 		task_delay(DELAY);
+// 		task_yield();
+// 	}
+// }
+
+// void user_task1(void)
+// {
+// 	uart_puts("Task 1: Created!\n");
+// 	while (1) {
+// 		uart_puts("Task 1: Running...\n");
+// 		task_delay(DELAY);
+// 		task_yield();
+// 	}
+// }
+
+// /* NOTICE: DON'T LOOP INFINITELY IN main() */
+// void os_main(void)
+// {
+// 	task_create(user_task0, 1);
+// 	task_create(user_task1, 1);
+// }

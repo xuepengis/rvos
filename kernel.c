@@ -17,6 +17,7 @@ void start_kernel(void)
 {
 	uart_init();
 	uart_puts("Hello, RVOS!\n");
+	uart_puts("My name is Xue Peng!\n");
 
 	page_init();
 
