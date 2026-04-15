@@ -1,3 +1,5 @@
+//这是用来模拟的
+
 #ifndef __PLATFORM_H__
 #define __PLATFORM_H__
 
@@ -38,8 +40,8 @@
 // 7. CLINT 基地址 (根据仿真日志得知)
 #define CLINT_BASE 0xf0010000L
 
-// CLINT 时钟频率 (来自 soc.h 的 CONFIG_CLOCK_FREQUENCY)
-#define CLINT_TIMEBASE_FREQ 1000000
+// // CLINT 时钟频率 (来自 soc.h 的 CONFIG_CLOCK_FREQUENCY)
+// #define CLINT_TIMEBASE_FREQ 1000000
 
 // 8. CLINT 寄存器偏移 (符合 RISC-V 标准)
 #define CLINT_MSIP(hartid) (CLINT_BASE + 4 * (hartid))
@@ -47,3 +49,57 @@
 #define CLINT_MTIME (CLINT_BASE + 0xbff8) // machine time register
 
 #endif /* __PLATFORM_H__ */
+
+
+// 这是用来上板的
+
+// #ifndef __PLATFORM_H__
+// #define __PLATFORM_H__
+
+// // 1. 修改最大 CPU 数量
+// #define MAXNUM_CPU 1
+
+// // 2. 主存大小 (16MB)
+// #define LENGTH_RAM (16 * 1024 * 1024)
+
+// // 3. 定义 LiteX 的 CSR 基地址
+// #define CSR_BASE 0xf0000000L
+
+// // ====================================================================
+// // 4. 【核心修复】UART 寄存器地址 (根据生成的 csr.h，基址为 0x1000)
+// // ====================================================================
+// #define CSR_UART_RXTX_ADDR       (CSR_BASE + 0x1000L)
+// #define CSR_UART_TXFULL_ADDR     (CSR_BASE + 0x1004L)
+// #define CSR_UART_RXEMPTY_ADDR    (CSR_BASE + 0x1008L)
+// #define CSR_UART_EV_STATUS_ADDR  (CSR_BASE + 0x100cL)
+// #define CSR_UART_EV_PENDING_ADDR (CSR_BASE + 0x1010L)
+// #define CSR_UART_EV_ENABLE_ADDR  (CSR_BASE + 0x1014L)
+
+// // 5. UART 中断号 (来自 soc.h)
+// #define UART0_IRQ 1
+
+// // ====================================================================
+// // 6. PLIC (中断控制器) 配置 (来自 mem.h)
+// // ====================================================================
+// #define PLIC_BASE 0xf0c00000L
+
+// #define PLIC_PRIORITY(id)        (PLIC_BASE + (id) * 4)
+// #define PLIC_PENDING(id)         (PLIC_BASE + 0x1000 + ((id) / 32) * 4)
+// #define PLIC_MENABLE(hart, id)   (PLIC_BASE + 0x2000 + (hart) * 0x80 + ((id) / 32) * 4)
+// #define PLIC_MTHRESHOLD(hart)    (PLIC_BASE + 0x200000 + (hart) * 0x1000)
+// #define PLIC_MCLAIM(hart)        (PLIC_BASE + 0x200004 + (hart) * 0x1000)
+// #define PLIC_MCOMPLETE(hart)     (PLIC_BASE + 0x200004 + (hart) * 0x1000)
+
+// // ====================================================================
+// // 7. CLINT (核心局部中断/定时器) 配置 (来自 mem.h)
+// // ====================================================================
+// #define CLINT_BASE 0xf0010000L
+
+// // LiteX 中的 CLINT 定时器默认与系统时钟同频 (100MHz)
+// #define CLINT_TIMEBASE_FREQ 100000000
+
+// #define CLINT_MSIP(hartid)       (CLINT_BASE + 4 * (hartid))
+// #define CLINT_MTIMECMP(hartid)   (CLINT_BASE + 0x4000 + 8 * (hartid))
+// #define CLINT_MTIME              (CLINT_BASE + 0xbff8) 
+
+// #endif /* __PLATFORM_H__ */
