@@ -7,13 +7,16 @@
 
 	.text
 _start:
-	# park harts with id != 0
+	# park harts with id >= 3
 	csrr	t0, mhartid		# read current hart id
 	mv	tp, t0			# keep CPU's hartid in its tp for later usage.
-	bnez	t0, park		# if we're not on the hart 0
-					# we park the hart
+	li	t1, 3
+	bge	t0, t1, park		# if hart id >= 3, park it
 
-	# Set all bytes in the BSS section to zero.
+	# ONLY hart 0 initializes BSS
+	bnez	t0, 2f
+	
+	# Load BSS start and end addresses
 	la	a0, _bss_start
 	la	a1, _bss_end
 	bgeu	a0, a1, 2f
@@ -39,7 +42,7 @@ _start:
 	li	t0, 3 << 11 | 1 << 7
 	csrs	mstatus, t0
 
-	j	start_kernel		# hart 0 jump to c
+	j	start_kernel		# all 3 harts jump to C code
 
 park:
 	wfi

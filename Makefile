@@ -25,7 +25,7 @@ CFLAGS += -nostdlib -fno-builtin -g -Wall
 CFLAGS += -march=rv32g -mabi=ilp32
 
 QEMU = qemu-system-riscv32
-QFLAGS = -nographic -smp 1 -machine virt -bios none
+QFLAGS = -nographic -smp 3 -machine virt -bios none
 
 GDB = gdb-multiarch
 CC = ${CROSS_COMPILE}gcc

@@ -75,7 +75,6 @@ extern int  task_create(void (*task)(void), int priority);
 extern void task_delay(volatile int count);
 extern void task_yield();
 
-// 添加策略宏定义 ...
 #define SCHED_FIFO 0
 #define SCHED_PRIO 1
 
@@ -85,9 +84,14 @@ extern void sched_set_policy(int policy);
 extern int plic_claim(void);
 extern void plic_complete(int irq);
 
-/* lock */
-extern int spin_lock(void);
-extern int spin_unlock(void);
+/* lock: 新增 saved_mstatus 支持中断安全还原 */
+typedef struct spinlock {
+	int locked;
+	reg_t saved_mstatus;
+} spinlock_t;
+
+extern void spin_lock(spinlock_t *lk);
+extern void spin_unlock(spinlock_t *lk);
 
 /* software timer */
 struct timer {
@@ -98,6 +102,5 @@ struct timer {
 };
 extern struct timer *timer_create(void (*handler)(void *arg), void *arg, uint32_t timeout);
 extern void timer_delete(struct timer *timer);
-
 
 #endif /* __OS_H__ */
