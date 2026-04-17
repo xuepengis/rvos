@@ -85,4 +85,19 @@ extern void sched_set_policy(int policy);
 extern int plic_claim(void);
 extern void plic_complete(int irq);
 
+/* lock */
+extern int spin_lock(void);
+extern int spin_unlock(void);
+
+/* software timer */
+struct timer {
+	void (*func)(void *arg);
+	void *arg;
+	uint32_t timeout_tick;
+	uint32_t period_tick;
+};
+extern struct timer *timer_create(void (*handler)(void *arg), void *arg, uint32_t timeout);
+extern void timer_delete(struct timer *timer);
+
+
 #endif /* __OS_H__ */

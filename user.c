@@ -2,18 +2,43 @@
 
 #define DELAY 4000
 
+struct userdata {
+	char *name;
+};
+
+/* Jack must be global */
+struct userdata timer3 = {"software timer 3"};
+struct userdata timer5 = {"software timer 5"};
+struct userdata timer7 = {"software timer 7"};
+
+void timer_func(void *arg)
+{
+	if (NULL == arg)
+		return;
+
+	struct userdata *param = (struct userdata *)arg;
+	printf("~~~~~~~~~~ %s ~~~~~~~~~~\n", param->name);
+}
+
 void user_task0(void)
 {
 	uart_puts("Task 0: Created!\n");
-    // 演示协同式：刚创建完主动让出 CPU 给其他任务
-	task_yield();
-	
-	uart_puts("Task 0: I'm back!\n");
+
+	struct timer *t1 = timer_create(timer_func, &timer3, 3);
+	if (NULL == t1) {
+		printf("timer_create() failed!\n");
+	}
+	struct timer *t2 = timer_create(timer_func, &timer5, 5);
+	if (NULL == t2) {
+		printf("timer_create() failed!\n");
+	}
+	struct timer *t3 = timer_create(timer_func, &timer7, 7);
+	if (NULL == t3) {
+		printf("timer_create() failed!\n");
+	}
 	while (1) {
-		uart_puts("Task 0: Running (Cooperative)...\n");
-        // 执行一段代码后主动 yield
+		uart_puts("Task 0: Running... \n");
 		task_delay(DELAY);
-		task_yield(); 
 	}
 }
 
@@ -21,19 +46,8 @@ void user_task1(void)
 {
 	uart_puts("Task 1: Created!\n");
 	while (1) {
-		uart_puts("Task 1: Running (Preemptive)...\n");
+		uart_puts("Task 1: Running... \n");
 		task_delay(DELAY);
-        // 不主动 yield，必须等待 Timer Interrupt 来抢占它
-	}
-}
-
-void user_task2(void)
-{
-	uart_puts("Task 2: Created!\n");
-	while (1) {
-		uart_puts("Task 2: Running (Preemptive)...\n");
-		task_delay(DELAY);
-        // 不主动 yield，必须等待 Timer Interrupt 来抢占它
 	}
 }
 
@@ -42,5 +56,5 @@ void os_main(void)
 {
 	task_create(user_task0, 1);
 	task_create(user_task1, 1);
-	task_create(user_task2, 1);
 }
+

@@ -1,5 +1,3 @@
-# Custom Macro Definition
-
 SRCS_ASM = \
 	start.S \
 	mem.S \
@@ -16,6 +14,7 @@ SRCS_C = \
 	trap.c \
 	plic.c \
 	timer.c \
+	lock.c \
 	
 DEFS +=
 
