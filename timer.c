@@ -63,6 +63,7 @@ struct timer *timer_create(void (*handler)(void *arg), void *arg, uint32_t timeo
 	t->func = handler;
 	t->arg = arg;
 	t->timeout_tick = _tick + timeout;
+	t->period_tick = timeout;
 
 	spin_unlock();
 
@@ -78,6 +79,8 @@ void timer_delete(struct timer *timer)
 		if (t == timer) {
 			t->func = NULL;
 			t->arg = NULL;
+			t->timeout_tick = 0;
+			t->period_tick = 0;
 			break;
 		}
 		t++;
@@ -94,12 +97,11 @@ static inline void timer_check()
 		if (NULL != t->func) {
 			if (_tick >= t->timeout_tick) {
 				t->func(t->arg);
-
-				/* once time, just delete it after timeout */
-				t->func = NULL;
-				t->arg = NULL;
-
-				break;
+				/*
+				 * periodic software timer:
+				 * reload timeout so the timer keeps firing.
+				 */
+				t->timeout_tick += t->period_tick;
 			}
 		}
 		t++;

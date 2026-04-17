@@ -3,12 +3,13 @@
 #define DELAY 4000
 
 struct userdata {
-	int counter;
-	char *str;
+	char *name;
 };
 
 /* Jack must be global */
-struct userdata person = {0, "Jack"};
+struct userdata timer3 = {"software timer 3"};
+struct userdata timer5 = {"software timer 5"};
+struct userdata timer7 = {"software timer 7"};
 
 void timer_func(void *arg)
 {
@@ -16,24 +17,22 @@ void timer_func(void *arg)
 		return;
 
 	struct userdata *param = (struct userdata *)arg;
-
-	param->counter++;
-	printf("======> TIMEOUT: %s: %d\n", param->str, param->counter);
+	printf("~~~~~~~~~~ %s ~~~~~~~~~~\n", param->name);
 }
 
 void user_task0(void)
 {
 	uart_puts("Task 0: Created!\n");
 
-	struct timer *t1 = timer_create(timer_func, &person, 3);
+	struct timer *t1 = timer_create(timer_func, &timer3, 3);
 	if (NULL == t1) {
 		printf("timer_create() failed!\n");
 	}
-	struct timer *t2 = timer_create(timer_func, &person, 5);
+	struct timer *t2 = timer_create(timer_func, &timer5, 5);
 	if (NULL == t2) {
 		printf("timer_create() failed!\n");
 	}
-	struct timer *t3 = timer_create(timer_func, &person, 7);
+	struct timer *t3 = timer_create(timer_func, &timer7, 7);
 	if (NULL == t3) {
 		printf("timer_create() failed!\n");
 	}
